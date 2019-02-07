@@ -1,2 +1,2 @@
 # REST_api
-rest api repository for out project
+REST api repo for out project
