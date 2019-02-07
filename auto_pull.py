@@ -7,7 +7,7 @@ Popen('git -C /home/ubuntu/REST_api/ status -uno', stdout=log, stderr=PIPE, shel
 
 log.close()
 
-with open(expanduser('~')+'/rest_api/REST_log.txt','r') as f:
+with open(expanduser('~')+'/REST_api/git_log.txt','r') as f:
     contents = f.read()
 
     if('behind' in contents):
