@@ -1,2 +1,2 @@
-# web_app
-web app repo for our project
+# REST_api
+REST API repo for our project
