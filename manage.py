@@ -16,13 +16,14 @@ app.debug = True
 manager = Manager(app)
 
 
-def read_env_vars(filename='/home/ubuntu/REST_API/env_vars.txt'):
+def read_env_vars(filename='/home/ubuntu/REST_api/env_vars.txt'):
     try:
         with open(filename, 'r') as f:
             for line in f.readlines():
                 key, value = line.split()
                 app.config[key] = value
-    except:
+    except Exception as e:
+        print(e)
         print("unable to read env_vars from file: " + filename)
 
 
