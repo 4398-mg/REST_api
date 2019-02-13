@@ -15,7 +15,7 @@ app.debug = True
 
 manager = Manager(app)
 
-def read_env_vars(filename='env_vars'):
+def read_env_vars(filename='env_vars.txt'):
     try:
         with open(filename, 'r') as f:
             for line in f.readlines():
