@@ -42,7 +42,7 @@ def test_db():
     except Exception as e:
         print(app.config)
         resp = {
-            'config': app.config,
+            'config': app.config['DB_USER'],
             'status': 'unable to connect to and access db',
             'error_text': str(e)
         }
