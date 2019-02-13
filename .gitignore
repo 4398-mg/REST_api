@@ -108,4 +108,4 @@ venv.bak/
 .vscode/
 
 # env vars
-env_vars.sh
+env_vars

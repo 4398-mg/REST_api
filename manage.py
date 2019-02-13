@@ -15,6 +15,16 @@ app.debug = True
 
 manager = Manager(app)
 
+def read_env_vars(filename='env_vars'):
+    try:
+        with open(filename, 'r') as f:
+            for line in f.readlines():
+                key, value = line.split()
+                app.config[key] = value
+    except:
+        print("unable to read env_vars from file: " + filename)
+read_env_vars()
+
 # for mongodb use
 mongo_url = ('mongodb://%s:%s@ds131905.mlab.com'
              ':31905/music_gen' % (app.config['DB_USER'],
@@ -26,7 +36,6 @@ print(client)
 
 def make_shell_context():
     return dict(app=app)
-
 
 @manager.option('-h', '--host', dest='host', default='0.0.0.0')
 @manager.option('-p', '--port', dest='port', type=int, default=1337)
