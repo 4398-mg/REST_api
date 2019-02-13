@@ -36,12 +36,13 @@ def test_db():
 
     resp = {}
     try:
-        db.users.find()
+        db.test_coll.insert({'test': 'test'})
+        db.test_coll.remove({}, multi=True)
         resp = {'status': 'connected and accessed database successfully'}
     except Exception as e:
         resp = {
             'status': 'unable to connect to and access db',
-            'error_text': e.__str__
+            'error_text': str(e)
         }
 
     return jsonify(resp)
