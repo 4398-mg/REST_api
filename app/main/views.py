@@ -40,6 +40,7 @@ def test_db():
         db.test_coll.remove({}, multi=True)
         resp = {'status': 'connected and accessed database successfully'}
     except Exception as e:
+        print(app.config)
         resp = {
             'status': 'unable to connect to and access db',
             'error_text': str(e)
