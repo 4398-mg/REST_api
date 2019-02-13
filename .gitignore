@@ -106,3 +106,6 @@ venv.bak/
 
 # vscode
 .vscode/
+
+# env vars
+env_vars.sh

@@ -27,6 +27,7 @@ class DevelopmentConfig(Config):
     LOGLEVEL = DEBUG
     DB_USER = os.getenv('DB_USER')
     DB_PASS = os.getenv('DB_PASS')
+    WORKER_POOL_SIZE = 4
 
 
 class ProductionConfig(Config):
@@ -34,6 +35,8 @@ class ProductionConfig(Config):
     LOGLEVEL = ''
     DB_USER = os.getenv('DB_USER')
     DB_PASS = os.getenv('DB_PASS')
+    WORKER_POOL_SIZE = 4
+
 
 config = {
     'development': DevelopmentConfig,
