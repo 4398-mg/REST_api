@@ -52,6 +52,15 @@ def test_db():
 
 @main.route('/echo', methods=['POST'])
 def echo():
+
+    print(request)
+    print(dir(request))
+    print(request.data)
+    try:
+        print(request.json)
+        print(request.values)
+    except Exception as e:
+        print(e)
     try:
         data = json.loads(request.data.decode('utf-8'))
     except:

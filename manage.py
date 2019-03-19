@@ -8,10 +8,12 @@ import os
 from app import create_app
 from flask_script import Manager, Shell, Command, Option
 from pymongo import MongoClient
-
+from flask_cors import CORS
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 app.debug = True
+
+CORS(app)
 
 manager = Manager(app)
 
