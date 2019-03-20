@@ -7,6 +7,7 @@ from datetime import datetime
 import sys
 from boto.s3.key import Key
 from .helper import names
+from .neural_net import sample
 import uuid
 
 
@@ -103,6 +104,19 @@ def generate_song():
     key.set_contents_from_string('Hello World!')
     key.set_canned_acl('public-read')
 
+    gen_params = {
+        'data_dir': 'data/blues',
+        'experiment_dir': 'experiments/blues',
+        'file_length': 1200,
+        'midi_instrument': 'Acoustic Grand Piano',
+        'midi_instrument_1': 'Acoustic Grand Piano',
+        'midi_instrument_2': 'Acoustic Grand Piano',
+        'midi_instrument_3': 'Acoustic Grand Piano',
+        'midi_instrument_4': 'Acoustic Grand Piano',
+        'num_files': 1,
+        'prime_file': None,
+        'save_dir': None
+    }
     file_url = key.generate_url(0, query_auth=False, force_http=True)
 
     response_obj = {
