@@ -1,10 +1,14 @@
 import json
 from flask import (abort, jsonify, g, session, render_template, redirect,
                    request, url_for)
-from manage import app, client
+from manage import app, client, bucket
 from . import main
 from datetime import datetime
-import random
+import sys
+from boto.s3.key import Key
+from .helper import names
+import uuid
+
 
 # import self written modules from modules dir
 # from ..modules import ...
@@ -91,34 +95,30 @@ def generate_song():
     except:
         abort(400)
 
-    genre_nouns = {
-        'classical': ['strings', 'zeitgest', 'orchestra', 'duets', 'singularities'],
-        'hip hop': ['streets', 'corners', 'paradise', 'beef', 'punch', 'rut'],
-        'jazz': ['ska', 'boo bop', 'bing bang', 'ska da doo da da', 'zimbibby doo wa'],
-        'rock': ['trouble', 'yesterday', 'human', 'dancer', 'prize fighter', 'love'],
-        'pop': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo']
-    }
+    db = client.music_gen
 
-    tempo_adjectives = {
-        'fast': ['Boltin\'', 'Zoomin\'', 'Rushing', 'Quick', 'Fast', 'Snapping'
-                 'Crackin\'', 'Zippy', 'Quick little', 'Chasing'],
-        'medium': ['Just a normal', 'Another day in the', 'Red', 'Living', 'Big'],
-        'slow': ['Dragging', 'Waltzing', 'Scraping', 'Holding back',
-                 'Waiting for', 'Wandering']
-    }
+    file_id = str(uuid.uuid4())
+    file_name = 'music/' + file_id + '.txt'
+    key = bucket.new_key(file_name)
+    key.set_contents_from_string('Hello World!')
+    key.set_canned_acl('public-read')
+
+    file_url = key.generate_url(0, query_auth=False, force_http=True)
 
     response_obj = {
         'timestamp': datetime.utcnow(),
-        'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3'
+        'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3',
+        'song_id': file_id,
+        'genre': data['genre'],
+        'tempo': data['tempo'],
+        'duration': data['duration'],
+        'song_name': names.generate_name(data['genre'], data['tempo'])
     }
-
-    adjective = random.choice(tempo_adjectives[data['tempo']])
-    noun = random.choice(genre_nouns[data['genre']])
-
-    response_obj['song_name'] = adjective + ' ' + noun
 
     resp = jsonify(response_obj)
     resp.status_code = 200
+
+    db.songs.insert(response_obj)
 
     return resp
 
@@ -137,9 +137,16 @@ def generate_song_help():
 
 @main.route('/get_song', methods=['POST'])
 def get_song():
-    response_obj = {
-        'response': 'endpoint for getting a link to download a song (wip)'
-    }
+
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        song_id = data['song_id']
+    except:
+        abort(400)
+
+    db = client.music_gen
+
+    response_obj = db.songs.find_one({'song_id': song_id}, {'_id': False})
 
     resp = jsonify(response_obj)
     resp.status_code = 200
@@ -149,6 +156,7 @@ def get_song():
 
 @main.route('/get_song/help', methods=['GET', 'POST'])
 def get_song_help():
+
     response_obj = {
         'response': 'help for getting a song download link'
     }

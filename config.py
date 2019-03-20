@@ -28,6 +28,8 @@ class DevelopmentConfig(Config):
     DB_USER = os.getenv('DB_USER')
     DB_PASS = os.getenv('DB_PASS')
     WORKER_POOL_SIZE = 4
+    AWS_ID = os.getenv('AWS_ID')
+    AWS_SECRET_ID = os.getenv('AWS_SECRET_ID')
 
 
 class ProductionConfig(Config):
@@ -36,7 +38,8 @@ class ProductionConfig(Config):
     DB_USER = os.getenv('DB_USER')
     DB_PASS = os.getenv('DB_PASS')
     WORKER_POOL_SIZE = 4
-
+    AWS_ID = os.getenv('AWS_ID')
+    AWS_SECRET_ID = os.getenv('AWS_SECRET_ID')
 
 config = {
     'development': DevelopmentConfig,

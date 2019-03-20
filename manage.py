@@ -9,6 +9,21 @@ from app import create_app
 from flask_script import Manager, Shell, Command, Option
 from pymongo import MongoClient
 from flask_cors import CORS
+import boto
+import boto.s3
+import sys
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 app.debug = True
@@ -25,19 +40,33 @@ def read_env_vars(filename='/home/ubuntu/REST_api/env_vars.txt'):
                 key, value = line.split()
                 app.config[key] = value
     except Exception as e:
-        print(e)
-        print("unable to read env_vars from file: " + filename)
+        print(bcolors.WARNING + "unable to read env_vars from file: " +
+              filename + bcolors.ENDC)
 
 
 read_env_vars()
+
+conn = boto.connect_s3(
+    app.config['AWS_ID'], app.config['AWS_SECRET_ID'], is_secure=False)
+
+try:
+    bucket = conn.get_bucket('wimbo-music-bucket')
+except Exception as e:
+    print(e)
+    bucket = conn.create_bucket('wimbo-music-bucket')
 
 # for mongodb use
 mongo_url = ('mongodb://%s:%s@ds131905.mlab.com'
              ':31905/music_gen' % (app.config['DB_USER'],
                                    app.config['DB_PASS']))
-print(mongo_url)
+
+print(bcolors.OKBLUE + mongo_url + bcolors.ENDC)
 client = MongoClient(mongo_url, connect=False)
-print(client)
+try:
+    client.server_info()
+    print(bcolors.OKGREEN+"Connected to database"+bcolors.ENDC)
+except Exception as e:
+    print(bcolors.FAIL+"Unable to connect to database"+bcolors.ENDC)
 
 
 def make_shell_context():
