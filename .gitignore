@@ -109,6 +109,7 @@ venv.bak/
 
 # ignore generated music
 app/main/music
+*.mp3
 
 # env vars
 env_vars.txt
