@@ -117,29 +117,31 @@ def generate_song():
         db = client.music_gen
 
         file_id = str(uuid.uuid4())
-        mp3_file = './app/main/music/' + file_id + '.mp3'
-        outfile = sample.midi_to_mp3(generated_file, mp3_file)
+        wav_file = './app/main/music/' + file_id + '.wav'
+        outfile = sample.midi_to_mp3(generated_file, wav_file)
 
         # check to make sure file has been converted
 
-        file_name = 'music/' + file_id + '.mp3'
+        file_name = 'music/' + file_id + '.wav'
 
         key = bucket.new_key(file_name)
         key.set_contents_from_filename(outfile)
         key.set_canned_acl('public-read')
         file_url = key.generate_url(0, query_auth=False, force_http=True)
-
+        print(file_url)
+        
         # remove file
 
         response_obj = {
             'timestamp': datetime.utcnow(),
-            'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3',
+            'location': file_url,
             'song_id': file_id,
             'genre': data['genre'],
             'tempo': data['tempo'],
             'duration': data['duration'],
             'song_name': names.generate_name(data['genre'], data['tempo'])
         }
+        print(response_obj)
         resp = jsonify(response_obj)
         resp.status_code = 200
 
