@@ -3,10 +3,11 @@ import argparse
 import os
 import pdb
 import pretty_midi
-import train
-import utils
+from . import train
+from . import utils
 from midi2audio import FluidSynth
 import sys
+from subprocess import Popen, PIPE
 
 
 def parse_args():
@@ -57,8 +58,10 @@ def parse_args():
 
 def midi_to_mp3(path, output):
     # using the default sound font in 44100 Hz sample rate
-    fs = FluidSynth()
-    fs.midi_to_audio(path, output)
+
+    Popen(['midi2audio', path, output], stdout=PIPE, stderr=PIPE).wait()
+
+    return output
 
 
 def get_experiment_dir(experiment_dir):
@@ -107,20 +110,18 @@ def main(args=None):
     else:
         args = argparse.Namespace(**args)
 
-    print(args)
-    sys.exit(0)
     args.verbose = True
 
     # prime file validation
     if args.prime_file and not os.path.exists(args.prime_file):
         utils.log('Error: prime file {} does not exist. Exiting.'.format(args.prime_file),
                   True)
-        exit(1)
+        return None
     else:
         if not os.path.isdir(args.data_dir):
-            utils.log('Error: data dir {} does not exist. Exiting.'.format(args.prime_file),
+            utils.log('Error: data dir {} does not exist. Exiting.'.format(args.data_dir),
                       True)
-            exit(1)
+            return None
 
     midi_files = [args.prime_file] if args.prime_file else \
                  [os.path.join(args.data_dir, f) for f in os.listdir(args.data_dir)
@@ -154,7 +155,7 @@ def main(args=None):
         if not (instrument_num >= 0 and instrument_num <= 127):
             utils.log('Error: {} is not a supported instrument. Number values must be '
                       'be 0-127. Exiting'.format(args.midi_instrument), True)
-            exit(1)
+            return None
         args.midi_instrument = pretty_midi.program_to_instrument_name(
             instrument_num)
     except ValueError as err:
@@ -165,7 +166,7 @@ def main(args=None):
         except ValueError as er:
             utils.log('Error: {} is not a valid General MIDI instrument. Exiting.'
                       .format(args.midi_instrument), True)
-            exit(1)
+            return None
 
     try:
         # try and parse the instrument name as an int
@@ -173,7 +174,7 @@ def main(args=None):
         if not (instrument_num >= 0 and instrument_num <= 127):
             utils.log('Error: {} is not a supported instrument. Number values must be '
                       'be 0-127. Exiting'.format(args.midi_instrument_1), True)
-            exit(1)
+            return None
         args.midi_instrument_1 = pretty_midi.program_to_instrument_name(
             instrument_num)
     except ValueError as err:
@@ -184,7 +185,7 @@ def main(args=None):
         except ValueError as er:
             utils.log('Error: {} is not a valid General MIDI instrument. Exiting.'
                       .format(args.midi_instrument_1), True)
-            exit(1)
+            return None
 
     try:
         # try and parse the instrument name as an int
@@ -192,7 +193,7 @@ def main(args=None):
         if not (instrument_num >= 0 and instrument_num <= 127):
             utils.log('Error: {} is not a supported instrument. Number values must be '
                       'be 0-127. Exiting'.format(args.midi_instrument_2), True)
-            exit(1)
+            return None
         args.midi_instrument_2 = pretty_midi.program_to_instrument_name(
             instrument_num)
     except ValueError as err:
@@ -203,7 +204,7 @@ def main(args=None):
         except ValueError as er:
             utils.log('Error: {} is not a valid General MIDI instrument. Exiting.'
                       .format(args.midi_instrument_2), True)
-            exit(1)
+            return None
 
     try:
         # try and parse the instrument name as an int
@@ -211,7 +212,7 @@ def main(args=None):
         if not (instrument_num >= 0 and instrument_num <= 127):
             utils.log('Error: {} is not a supported instrument. Number values must be '
                       'be 0-127. Exiting'.format(args.midi_instrument_3), True)
-            exit(1)
+            return None
         args.midi_instrument_3 = pretty_midi.program_to_instrument_name(
             instrument_num)
     except ValueError as err:
@@ -222,7 +223,7 @@ def main(args=None):
         except ValueError as er:
             utils.log('Error: {} is not a valid General MIDI instrument. Exiting.'
                       .format(args.midi_instrument_3), True)
-            exit(1)
+            return None
 
     try:
         # try and parse the instrument name as an int
@@ -230,7 +231,7 @@ def main(args=None):
         if not (instrument_num >= 0 and instrument_num <= 127):
             utils.log('Error: {} is not a supported instrument. Number values must be '
                       'be 0-127. Exiting'.format(args.midi_instrument_4), True)
-            exit(1)
+            return None
         args.midi_instrument_4 = pretty_midi.program_to_instrument_name(
             instrument_num)
     except ValueError as err:
@@ -241,7 +242,7 @@ def main(args=None):
         except ValueError as er:
             utils.log('Error: {} is not a valid General MIDI instrument. Exiting.'
                       .format(args.midi_instrument_4), True)
-            exit(1)
+            return None
 
     # generate 10 tracks using random seeds
     utils.log('Loading seed files...', args.verbose)
@@ -254,6 +255,7 @@ def main(args=None):
         midi.write(file.format(i + 1))
        # midi_to_mp3('{}.mid','{}.wav')
         utils.log('wrote midi file to {}'.format(file), True)
+    return file
 
 
 if __name__ == '__main__':

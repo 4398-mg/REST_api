@@ -52,6 +52,7 @@ try:
     print(bcolors.OKGREEN+"Connected to S3 instance"+bcolors.ENDC)
 except:
     print(bcolors.FAIL+"Failed to connect to S3 instance"+bcolors.ENDC)
+    sys.exit(0)
 try:
     bucket = conn.get_bucket('wimbo-music-bucket')
     print(bcolors.OKGREEN+"Connected to bucket"+bcolors.ENDC)

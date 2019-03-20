@@ -1,7 +1,7 @@
 import json
 from flask import (abort, jsonify, g, session, render_template, redirect,
                    request, url_for)
-from manage import app, client, bucket
+from manage import app, client, bucket, bcolors
 from . import main
 from datetime import datetime
 import sys
@@ -96,17 +96,10 @@ def generate_song():
     except:
         abort(400)
 
-    db = client.music_gen
-
-    file_id = str(uuid.uuid4())
-    file_name = 'music/' + file_id + '.txt'
-    key = bucket.new_key(file_name)
-    key.set_contents_from_string('Hello World!')
-    key.set_canned_acl('public-read')
-
+    print(bcolors.OKBLUE + 'generating_song')
     gen_params = {
-        'data_dir': 'data/blues',
-        'experiment_dir': 'experiments/blues',
+        'data_dir': './app/main/neural_net/data/blues',
+        'experiment_dir': './app/main/neural_net/experiments/blues',
         'file_length': 1200,
         'midi_instrument': 'Acoustic Grand Piano',
         'midi_instrument_1': 'Acoustic Grand Piano',
@@ -117,22 +110,53 @@ def generate_song():
         'prime_file': None,
         'save_dir': None
     }
-    file_url = key.generate_url(0, query_auth=False, force_http=True)
 
-    response_obj = {
-        'timestamp': datetime.utcnow(),
-        'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3',
-        'song_id': file_id,
-        'genre': data['genre'],
-        'tempo': data['tempo'],
-        'duration': data['duration'],
-        'song_name': names.generate_name(data['genre'], data['tempo'])
-    }
+    generated_file = sample.main(gen_params)
+    print('done generating\ngenerated: ' + str(generated_file) + bcolors.ENDC)
+    if(generated_file):
+        db = client.music_gen
 
-    resp = jsonify(response_obj)
-    resp.status_code = 200
+        file_id = str(uuid.uuid4())
+        mp3_file = './app/main/music/' + file_id + '.mp3'
+        outfile = sample.midi_to_mp3(generated_file, mp3_file)
 
-    db.songs.insert(response_obj)
+        # check to make sure file has been converted
+
+        file_name = 'music/' + file_id + '.mp3'
+
+        key = bucket.new_key(file_name)
+        key.set_contents_from_filename(outfile)
+        key.set_canned_acl('public-read')
+        file_url = key.generate_url(0, query_auth=False, force_http=True)
+
+        # remove file
+
+        response_obj = {
+            'timestamp': datetime.utcnow(),
+            'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3',
+            'song_id': file_id,
+            'genre': data['genre'],
+            'tempo': data['tempo'],
+            'duration': data['duration'],
+            'song_name': names.generate_name(data['genre'], data['tempo'])
+        }
+        resp = jsonify(response_obj)
+        resp.status_code = 200
+
+        db.songs.insert(response_obj)
+    else:
+        response_obj = {
+            'timestamp': datetime.utcnow(),
+            'location': None,
+            'song_id': file_id,
+            'genre': data['genre'],
+            'tempo': data['tempo'],
+            'duration': data['duration'],
+            'song_name': names.generate_name(data['genre'], data['tempo'])
+        }
+
+        resp = jsonify(response_obj)
+        resp.status_code = 200
 
     return resp
 
