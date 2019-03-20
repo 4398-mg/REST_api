@@ -108,7 +108,7 @@ venv.bak/
 .vscode/
 
 # ignore generated music
-app/main/music/
+app/main/music
 
 # env vars
 env_vars.txt
