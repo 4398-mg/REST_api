@@ -111,6 +111,8 @@ venv.bak/
 app/main/music
 *.mp3
 *.midi
+*.wav
 
 # env vars
 env_vars.txt
+
