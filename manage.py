@@ -46,13 +46,17 @@ def read_env_vars(filename='/home/ubuntu/REST_api/env_vars.txt'):
 
 read_env_vars()
 
-conn = boto.connect_s3(
-    app.config['AWS_ID'], app.config['AWS_SECRET_ID'], is_secure=False)
-
+try:
+    conn = boto.connect_s3(
+        app.config['AWS_ID'], app.config['AWS_SECRET_ID'], is_secure=False)
+    print(bcolors.OKGREEN+"Connected to S3 instance"+bcolors.ENDC)
+except:
+    print(bcolors.FAIL+"Failed to connect to S3 instance"+bcolors.ENDC)
 try:
     bucket = conn.get_bucket('wimbo-music-bucket')
-except Exception as e:
-    print(e)
+    print(bcolors.OKGREEN+"Connected to bucket"+bcolors.ENDC)
+except:
+    print(bcolors.FAIL+"Failed to connect to bucket"+bcolors.ENDC)
     bucket = conn.create_bucket('wimbo-music-bucket')
 
 # for mongodb use
