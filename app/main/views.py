@@ -3,6 +3,8 @@ from flask import (abort, jsonify, g, session, render_template, redirect,
                    request, url_for)
 from manage import app, client
 from . import main
+from datetime import datetime
+import random
 
 # import self written modules from modules dir
 # from ..modules import ...
@@ -82,9 +84,38 @@ def help():
 
 @main.route('/generate_song', methods=['POST'])
 def generate_song():
-    response_obj = {
-        'response': 'endpoint for song generation (wip)',
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        data['genre'] = data['genre'].lower()
+        data['tempo'] = data['tempo'].lower()
+    except:
+        abort(400)
+
+    genre_nouns = {
+        'classical': ['strings', 'zeitgest', 'orchestra', 'duets', 'singularities'],
+        'hip hop': ['streets', 'corners', 'paradise', 'beef', 'punch', 'rut'],
+        'jazz': ['ska', 'boo bop', 'bing bang', 'ska da doo da da', 'zimbibby doo wa'],
+        'rock': ['trouble', 'yesterday', 'human', 'dancer', 'prize fighter', 'love'],
+        'pop': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo']
     }
+
+    tempo_adjectives = {
+        'fast': ['Boltin\'', 'Zoomin\'', 'Rushing', 'Quick', 'Fast', 'Snapping'
+                 'Crackin\'', 'Zippy', 'Quick little', 'Chasing'],
+        'medium': ['Just a normal', 'Another day in the', 'Red', 'Living', 'Big'],
+        'slow': ['Dragging', 'Waltzing', 'Scraping', 'Holding back',
+                 'Waiting for', 'Wandering']
+    }
+
+    response_obj = {
+        'timestamp': datetime.utcnow(),
+        'location': 'http://www.hochmuth.com/mp3/Haydn_Cello_Concerto_D-1.mp3'
+    }
+
+    adjective = random.choice(tempo_adjectives[data['tempo']])
+    noun = random.choice(genre_nouns[data['genre']])
+
+    response_obj['song_name'] = adjective + ' ' + noun
 
     resp = jsonify(response_obj)
     resp.status_code = 200
