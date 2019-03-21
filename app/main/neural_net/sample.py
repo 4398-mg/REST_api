@@ -59,7 +59,7 @@ def parse_args():
 def midi_to_mp3(path, output):
     # using the default sound font in 44100 Hz sample rate
 
-    Popen(['midi2audio', path, output], stdout=PIPE, stderr=PIPE).wait()
+    Popen(['timidity', '-Ow', path, '-o', output], stdout=PIPE, stderr=PIPE).wait()
 
     return output
 
