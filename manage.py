@@ -79,7 +79,7 @@ def make_shell_context():
 
 
 @manager.option('-h', '--host', dest='host', default='0.0.0.0')
-@manager.option('-p', '--port', dest='port', type=int, default=1337)
+@manager.option('-p', '--port', dest='port', type=int, default=80)
 @manager.option('-w', '--workers', dest='workers', type=int, default=4)
 def gunicorn(host, port, workers):
     """Start the Server with Gunicorn"""

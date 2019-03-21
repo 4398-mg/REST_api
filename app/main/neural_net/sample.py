@@ -8,7 +8,7 @@ from . import utils
 from midi2audio import FluidSynth
 import sys
 from subprocess import Popen, PIPE
-
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -58,10 +58,21 @@ def parse_args():
 
 def midi_to_mp3(path, output):
     # using the default sound font in 44100 Hz sample rate
-
-    Popen(['timidity', '-Ow', path, '-o', output], stdout=PIPE, stderr=PIPE).wait()
-
-    return output
+    
+    begin = time.time()
+    print('timidity convert')
+    Popen('timidity {0} -Ow -o {1}'.format(path, output+'.wav', output+'.mp3'),
+            shell=True, stdout=PIPE, stderr=PIPE).wait()
+    print('time elapsed: ' + str(time.time() - begin))
+    
+    begin = time.time()
+    print('convert')
+    convert_str = 'lame -V3 {1} {2}'.format(path, output+'.wav', output+'.mp3') 
+    print(convert_str)
+    Popen(convert_str, shell=True).wait()
+    print('time elapsed: ' + str(time.time() - begin))
+    
+    return output+'.mp3'
 
 
 def get_experiment_dir(experiment_dir):

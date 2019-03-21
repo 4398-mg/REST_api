@@ -9,7 +9,8 @@ from boto.s3.key import Key
 from .helper import names
 from .neural_net import sample
 import uuid
-
+import time
+from subprocess import Popen, PIPE
 
 # import self written modules from modules dir
 # from ..modules import ...
@@ -111,26 +112,30 @@ def generate_song():
         'save_dir': None
     }
 
+    begin = time.time()
     generated_file = sample.main(gen_params)
     print('done generating\ngenerated: ' + str(generated_file) + bcolors.ENDC)
+    print('time elapsed: ' + str(time.time() - begin))
     if(generated_file):
         db = client.music_gen
 
         file_id = str(uuid.uuid4())
-        wav_file = './app/main/music/' + file_id + '.wav'
-        outfile = sample.midi_to_mp3(generated_file, wav_file)
-
+        
+        file_prefix = './app/main/music/' + file_id
+        outfile = sample.midi_to_mp3(generated_file, file_prefix)
+        print(outfile)
         # check to make sure file has been converted
 
-        file_name = 'music/' + file_id + '.wav'
+        file_name = 'music/' + file_id + '.mp3'
 
         key = bucket.new_key(file_name)
         key.set_contents_from_filename(outfile)
         key.set_canned_acl('public-read')
         file_url = key.generate_url(0, query_auth=False, force_http=True)
-        print(file_url)
         
         # remove file
+        rm_string = 'rm {0}; rm {1}; rm {2}'.format(file_prefix + '.mp3', file_prefix + '.wav', generated_file)
+        Popen(rm_string, stdout=PIPE, stderr=PIPE, shell=True).wait()
 
         response_obj = {
             'timestamp': datetime.utcnow(),
