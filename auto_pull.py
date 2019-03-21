@@ -11,6 +11,6 @@ with open(expanduser('~')+'/REST_api/git_log.txt','r') as f:
     contents = f.read()
 
     if('behind' in contents):
-        Popen('pkill -f gunicorn', stdout=PIPE, stderr=PIPE, shell=True).wait()
+        Popen('sudo pkill -f gunicorn', stdout=PIPE, stderr=PIPE, shell=True).wait()
         Popen('git -C /home/ubuntu/REST_api/ pull origin master', stdout=PIPE, stderr=PIPE, shell=True).wait()
         Popen('sudo python3 /home/ubuntu/REST_api/manage.py gunicorn -p 80', stdout=PIPE, stderr=PIPE, shell=True)
