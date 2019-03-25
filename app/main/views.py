@@ -6,11 +6,15 @@ from . import main
 from datetime import datetime
 import sys
 from boto.s3.key import Key
-from .helper import names
+from .helper import names, authentication
 from .neural_net import sample
 import uuid
 import time
 from subprocess import Popen, PIPE
+from random import randint
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
 
 # import self written modules from modules dir
 # from ..modules import ...
@@ -96,12 +100,19 @@ def generate_song():
         data['tempo'] = data['tempo'].lower()
     except:
         abort(400)
+    
+    print(data['duration'])
 
-    print(bcolors.OKBLUE + 'generating_song')
+    duration_dict = {
+        'Short': 450,
+        'Medium': 840,
+        'Long': 1200
+    }
+
     gen_params = {
         'data_dir': './app/main/neural_net/data/blues',
         'experiment_dir': './app/main/neural_net/experiments/blues',
-        'file_length': 1200,
+        'file_length': duration_dict[data['duration']] + (randint(0,20)-10),
         'midi_instrument': 'Acoustic Grand Piano',
         'midi_instrument_1': 'Acoustic Grand Piano',
         'midi_instrument_2': 'Acoustic Grand Piano',
@@ -150,6 +161,16 @@ def generate_song():
         resp = jsonify(response_obj)
         resp.status_code = 200
 
+        ''' 
+        if('profileID' in data.keys() and 'profileEmail' in data.keys()):
+            
+            verified_id = authentication.verify(data['profileID'])
+            if(verified_id):
+                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profileEmail}]},
+                    {'profileID': verified_id, 'profileEmail': profileEmail}, upsert=True)
+                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profileEmail}]},
+                    {'$push': {'songs': reponseObj}})
+        ''' 
         db.songs.insert(response_obj)
     else:
         response_obj = {
