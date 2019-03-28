@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, argparse, time
-import utils
+from . import utils
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.layers import LSTM
