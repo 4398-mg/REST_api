@@ -104,15 +104,19 @@ def generate_song():
     print(data['duration'])
 
     duration_dict = {
-        'Short': 450,
-        'Medium': 840,
-        'Long': 1200
+        'short': 450,
+        'medium': 840,
+        'long': 1200
     }
-
+    
+    try:
+        duration = duration_dict[data['duration'].lower()] + (randint(0,20)-10)
+    except KeyError:
+        abort(400)
     gen_params = {
         'data_dir': './app/main/neural_net/data/blues',
         'experiment_dir': './app/main/neural_net/experiments/blues',
-        'file_length': duration_dict[data['duration']] + (randint(0,20)-10),
+        'file_length': duration, 
         'midi_instrument': 'Acoustic Grand Piano',
         'midi_instrument_1': 'Acoustic Grand Piano',
         'midi_instrument_2': 'Acoustic Grand Piano',
