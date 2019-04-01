@@ -107,7 +107,7 @@ def get_data_generator(midi_paths,
             # print('yielding small batch: {}'.format(batch_size))
             
             res = (data[0][batch_index: batch_index + batch_size], 
-                  data[1][batch_index: batch_index + batch_size])
+                   data[1][batch_index: batch_index + batch_size])
             yield res
             batch_index = batch_index + batch_size
         
@@ -136,9 +136,7 @@ def load_model_from_checkpoint(model_dir):
 
     return model, epoch
 
-def generate(model, seeds, window_size, length, num_to_gen, instrument_name, 
-             instrument_name_1, instrument_name_2, instrument_name_3, 
-             instrument_name_4):
+def generate(model, seeds, window_size, length, num_to_gen, instrument_name):
     
     # generate a pretty midi file from a model using a seed
     def _gen(model, seed, window_size, length):
@@ -168,34 +166,20 @@ def generate(model, seeds, window_size, length, num_to_gen, instrument_name,
     for i in range(0, num_to_gen):
         seed = seeds[random.randint(0, len(seeds) - 1)]
         gen = _gen(model, seed, window_size, length)
-        midis.append(_network_output_to_midi(gen, instrument_name, instrument_name_1,
-                     instrument_name_2, instrument_name_3, instrument_name_4))
+        midis.append(_network_output_to_midi(gen, instrument_name))
     return midis
 
 # create a pretty midi file with a single instrument using the one-hot encoding
 # output of keras model.predict.
 def _network_output_to_midi(windows, 
-                        instrument_name='Acoustic Grand Piano', 
-                        instrument_name_1='Acoustic Grand Piano',
-                        instrument_name_2='Acoustic Grand Piano', 
-                        instrument_name_3='Acoustic Grand Piano', 
-                        instrument_name_4='Acoustic Grand Piano',
-                        allow_represses=False):
+                           instrument_name='Acoustic Grand Piano', 
+                           allow_represses=False):
 
     # Create a PrettyMIDI object
     midi = pretty_midi.PrettyMIDI()
     # Create an Instrument instance for a cello instrument
     instrument_program = pretty_midi.instrument_name_to_program(instrument_name)
-    instrument_program_1 = pretty_midi.instrument_name_to_program(instrument_name_1)
-    instrument_program_2 = pretty_midi.instrument_name_to_program(instrument_name_2)
-    instrument_program_3 = pretty_midi.instrument_name_to_program(instrument_name_3)
-    instrument_program_4 = pretty_midi.instrument_name_to_program(instrument_name_4)
-
     instrument = pretty_midi.Instrument(program=instrument_program)
-    instrument_1 = pretty_midi.Instrument(program=instrument_program_1)
-    instrument_2 = pretty_midi.Instrument(program=instrument_program_2)
-    instrument_3 = pretty_midi.Instrument(program=instrument_program_3)
-    instrument_4 = pretty_midi.Instrument(program=instrument_program_4)
     
     cur_note = None # an invalid note to start with
     cur_note_start = None
@@ -217,10 +201,6 @@ def _network_output_to_midi(windows,
                                         start=cur_note_start, 
                                         end=clock)
                 instrument.notes.append(note)
-                instrument_1.notes.append(note)
-                instrument_2.notes.append(note)
-                instrument_3.notes.append(note)
-                instrument_4.notes.append(note)
 
             # update the current note
             cur_note = note_num
@@ -231,14 +211,10 @@ def _network_output_to_midi(windows,
 
     # Add the cello instrument to the PrettyMIDI object
     midi.instruments.append(instrument)
-    midi.instruments.append(instrument_1)
-    midi.instruments.append(instrument_2)
-    midi.instruments.append(instrument_3)
-    midi.instruments.append(instrument_4)
     return midi
 
 # returns X, y data windows from all monophonic instrument
-# tracks in a pretty midi file-
+# tracks in a pretty midi file
 def _windows_from_monophonic_instruments(midi, window_size):
     X, y = [], []
     for m in midi:

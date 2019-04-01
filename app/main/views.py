@@ -75,6 +75,8 @@ def echo():
         print(e)
     try:
         data = json.loads(request.data.decode('utf-8'))
+        data['genre'] = data['genre'].lower()
+        data['tempo'] = data['tempo'].lower()
     except:
         data = {}
     return jsonify(data)
@@ -104,15 +106,19 @@ def generate_song():
     print(data['duration'])
 
     duration_dict = {
-        'Short': 450,
-        'Medium': 840,
-        'Long': 1200
+        'short': 450,
+        'medium': 840,
+        'long': 1200
     }
-
+    
+    try:
+        duration = duration_dict[data['duration'].lower()] + (randint(0,20)-10)
+    except KeyError:
+        abort(400)
     gen_params = {
         'data_dir': './app/main/neural_net/data/blues',
         'experiment_dir': './app/main/neural_net/experiments/blues',
-        'file_length': duration_dict[data['duration']] + (randint(0,20)-10),
+        'file_length': duration, 
         'midi_instrument': 'Acoustic Grand Piano',
         'midi_instrument_1': 'Acoustic Grand Piano',
         'midi_instrument_2': 'Acoustic Grand Piano',
@@ -161,16 +167,23 @@ def generate_song():
         resp = jsonify(response_obj)
         resp.status_code = 200
 
-        ''' 
+        
         if('profileID' in data.keys() and 'profileEmail' in data.keys()):
             
             verified_id = authentication.verify(data['profileID'])
+            profile_email = str(data['profileEmail']).lower()
             if(verified_id):
-                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profileEmail}]},
-                    {'profileID': verified_id, 'profileEmail': profileEmail}, upsert=True)
-                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profileEmail}]},
-                    {'$push': {'songs': reponseObj}})
-        ''' 
+                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]},
+                    {'profileID': verified_id, 'profileEmail': profile_email}, upsert=True)
+                try:
+                    current_songs = db.users.find_one({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]})['songs']
+                    current_songs.append(response_obj)
+                except Exception as e:
+                    print(e)
+                    current_songs = []
+                db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]},
+                    {'songs': current_songs})
+         
         db.songs.insert(response_obj)
     else:
         response_obj = {
@@ -187,6 +200,29 @@ def generate_song():
         resp.status_code = 200
 
     return resp
+
+@main.route('/history', methods=['POST'])
+def history():
+    db = client.music_gen
+    
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        profile_id = data['profileID']
+        profile_email= data['profileEmail'].lower()
+    except:
+        abort(404)
+
+    profile_id = authentication.verify(profile_id)
+    print(profile_id)
+    if(not(profile_id)):
+        abort(404)
+    found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
+
+    if(not(found_user)):
+        songs = []
+    else:
+        songs = found_user['songs']
+    return jsonify({'history': songs})
 
 
 @main.route('/generate_song/help', methods=['GET', 'POST'])

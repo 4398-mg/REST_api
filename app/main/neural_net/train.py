@@ -6,6 +6,7 @@ from keras.layers import Dense, Activation, Dropout
 from keras.layers import LSTM
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, TensorBoard
 from keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam, Adamax, Nadam
+from tensorflow.python.client import device_lib
 
 
 OUTPUT_SIZE = 129 # 0-127 notes + 1 for rests
@@ -32,7 +33,7 @@ def parse_args():
                         help='Window size for RNN input per step.')
     parser.add_argument('--batch_size', type=int, default=32,
                         help='minibatch size')
-    parser.add_argument('--num_epochs', type=int, default=20,
+    parser.add_argument('--num_epochs', type=int, default=10,
                         help='number of epochs before stopping training.')
     parser.add_argument('--dropout', type=float, default=0.2,
                         help='percentage of weights that are turned off every training '\
@@ -50,7 +51,7 @@ def parse_args():
                         'in --experiment_dir.')
     parser.add_argument('--n_jobs', '-j', type=int, default=1, 
                         help='Number of CPUs to use when loading and parsing midi files.')
-    parser.add_argument('--max_files_in_ram', default=50, type=int,
+    parser.add_argument('--max_files_in_ram', default=100, type=int,
                         help='The maximum number of midi files to load into RAM at once.'\
                         ' A higher value trains faster but uses more RAM. A lower value '\
                         'uses less RAM but takes significantly longer to train.')
@@ -157,7 +158,7 @@ def get_callbacks(experiment_dir, checkpoint_monitor='val_acc'):
     return callbacks
 
 def main():
-
+    print(device_lib.list_local_devices())
     args = parse_args()
     args.verbose = True
 
@@ -192,7 +193,7 @@ def main():
             utils.log('Wrote {} bytes to {}'.format(len(args.message), 
                 os.path.join(experiment_dir, 'message.txt')), args.verbose)
 
-    val_split = 0.1 # use 10 percent for validation
+    val_split = 0.2 # use 20 percent for validation
     val_split_index = int(float(len(midi_files)) * val_split)
 
     # use generators to lazy load train/validation data, ensuring that the
