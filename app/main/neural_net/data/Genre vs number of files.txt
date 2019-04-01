@@ -1,0 +1,10 @@
+Genres			Number of files
+
+Classical 			2092
+electronic 			972
+folk 				4388
+jazz 				1048
+pop 				1773
+rock 				2092
+
+TOTAL 				16487
