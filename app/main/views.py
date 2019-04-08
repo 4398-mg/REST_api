@@ -296,7 +296,6 @@ def remove_song():
 
     try:
         song_id = data['songID']
-        new_name = str(data['newName'])
     except:
         abort(400)
 
