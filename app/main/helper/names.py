@@ -4,10 +4,10 @@ import random
 def generate_name(genre, tempo):
     genre_nouns = {
         'classical': ['strings', 'zeitgest', 'orchestra', 'duets', 'singularities'],
-        'hip hop': ['streets', 'corners', 'paradise', 'beef', 'punch', 'rut'],
+        'folk': ['hills', 'meadows', 'paradise', 'fields', 'valley', 'basin'],
         'jazz': ['ska', 'boo bop', 'bing bang', 'ska da doo da da', 'zimbibby doo wa'],
         'rock': ['trouble', 'yesterday', 'human', 'dancer', 'prize fighter', 'love'],
-        'pop': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo']
+        'game': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo']
     }
 
     tempo_adjectives = {

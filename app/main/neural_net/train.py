@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import os, argparse, time
+
 try:
     from . import utils
 except:
     import utils
+
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.layers import LSTM

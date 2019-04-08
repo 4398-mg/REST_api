@@ -219,7 +219,7 @@ def _windows_from_monophonic_instruments(midi, window_size):
     X, y = [], []
     for m in midi:
         if m is not None:
-            melody_instruments = filter_monophonic(m.instruments, 1.0)
+            melody_instruments = filter_monophonic(m.instruments, 1.00)
             for instrument in melody_instruments:
                 if len(instrument.notes) > window_size:
                     windows = _encode_sliding_windows(instrument, window_size)

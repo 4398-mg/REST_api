@@ -14,7 +14,6 @@ try:
 except:
     import utils
 
-
 def parse_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -34,12 +33,12 @@ def parse_args():
     parser.add_argument(
         '--num_files',
         type=int,
-        default=10,
+        default=1,
         help='number of midi files to sample.')
     parser.add_argument(
         '--file_length',
         type=int,
-        default=1000,
+        default=1200,
         help='Length of each file, measured in 16th notes.')
     parser.add_argument('--prime_file', type=str,
                         help='prime generated files from midi file. If not specified ' \
@@ -112,11 +111,11 @@ def main(args=None):
                     args.prime_file), True)
             return None
 
-    f = random.choice(os.listdir(args.data_dir))
+    #f = random.choice(os.listdir(args.data_dir))
     midi_files = [ args.prime_file ] if args.prime_file else \
-                 [ os.path.join(args.data_dir, f)]
-
-    print("Random chosen file from the dataset is:", str(midi_files))
+                 [ os.path.join(args.data_dir, f) for f in os.listdir(args.data_dir) \
+                 if '.mid' in f or '.midi' in f ]
+    #print("Random chosen file from the dataset is:", str(midi_files))
     experiment_dir = get_experiment_dir(args.experiment_dir)
     utils.log('Using {} as --experiment_dir'.format(experiment_dir),
               args.verbose)
@@ -139,7 +138,7 @@ def main(args=None):
         window_size=window_size,
         batch_size=32,
         num_threads=1,
-        max_files_in_ram=10)
+        max_files_in_ram=5)
 
     # validate midi instrument name
     try:
@@ -164,10 +163,8 @@ def main(args=None):
     # generate 10 tracks using random seeds
     utils.log('Loading seed files...', args.verbose)
     X, y = next(seed_generator)
-    utils.log('Done loding seed files...', args.verbose)
     generated = utils.generate(model, X, window_size, args.file_length,
                                args.num_files, args.midi_instrument)
-    utils.log('File generated...', args.verbose)
     for i, midi in enumerate(generated):
         file = os.path.join(args.save_dir, '{}.mid'.format(i + 1))
         midi.write(file.format(i + 1))

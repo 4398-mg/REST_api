@@ -115,13 +115,24 @@ def generate_song():
         duration = duration_dict[data['duration'].lower()] + (randint(0,20)-10)
     except KeyError:
         abort(400)
+    
+    valid_genres = ['game', 'classical', 'folk']
+    
+    if(not(data['genre'] in valid_genres)):
+        abort(400)
+
+    instrument_dict = {
+                'game': 4,
+                'classical': 13,
+                'folk': 24
+            }
     gen_params = {
-        'data_dir': './app/main/neural_net/data/folk',
-        'experiment_dir': './app/main/neural_net/experiments/folk',
+        'data_dir': './app/main/neural_net/data/' + data['genre'],
+        'experiment_dir': './app/main/neural_net/experiments/' + data['genre'],
         'file_length': duration, 
-        'midi_instrument': 'Acoustic Grand Piano',
+        'midi_instrument': instrument_dict[data['genre']],
         'num_files': 1,
-        'prime_file': './app/main/neural_net/data/folk/45mnp.mid',
+        'prime_file': None,
         'save_dir': None
     }
 
