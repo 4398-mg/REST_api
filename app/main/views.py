@@ -116,16 +116,12 @@ def generate_song():
     except KeyError:
         abort(400)
     gen_params = {
-        'data_dir': './app/main/neural_net/data/blues',
-        'experiment_dir': './app/main/neural_net/experiments/blues',
+        'data_dir': './app/main/neural_net/data/folk',
+        'experiment_dir': './app/main/neural_net/experiments/folk',
         'file_length': duration, 
         'midi_instrument': 'Acoustic Grand Piano',
-        'midi_instrument_1': 'Acoustic Grand Piano',
-        'midi_instrument_2': 'Acoustic Grand Piano',
-        'midi_instrument_3': 'Acoustic Grand Piano',
-        'midi_instrument_4': 'Acoustic Grand Piano',
         'num_files': 1,
-        'prime_file': None,
+        'prime_file': './app/main/neural_net/data/folk/45mnp.mid',
         'save_dir': None
     }
 
@@ -163,7 +159,7 @@ def generate_song():
             'duration': data['duration'],
             'song_name': names.generate_name(data['genre'], data['tempo'])
         }
-        print(response_obj)
+
         resp = jsonify(response_obj)
         resp.status_code = 200
 
@@ -174,15 +170,16 @@ def generate_song():
             profile_email = str(data['profileEmail']).lower()
             if(verified_id):
                 db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]},
-                    {'profileID': verified_id, 'profileEmail': profile_email}, upsert=True)
+                        {'$set': {'profileID': verified_id, 'profileEmail': profile_email}}, upsert=True)
                 try:
-                    current_songs = db.users.find_one({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]})['songs']
+                    user_obj = db.users.find_one({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]})
+                    
+                    current_songs = user_obj['songs']
                     current_songs.append(response_obj)
                 except Exception as e:
-                    print(e)
-                    current_songs = []
+                    current_songs = [response_obj]
                 db.users.update({'$and': [{'profileID': verified_id}, {'profileEmail': profile_email}]},
-                    {'songs': current_songs})
+                        {'$set': {'songs': current_songs}}, upsert=True)
          
         db.songs.insert(response_obj)
     else:
@@ -213,7 +210,7 @@ def history():
         abort(404)
 
     profile_id = authentication.verify(profile_id)
-    print(profile_id)
+    
     if(not(profile_id)):
         abort(404)
     found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
@@ -224,6 +221,83 @@ def history():
         songs = found_user['songs']
     return jsonify({'history': songs})
 
+@main.route('/edit_song', methods=['POST'])
+def edit_song():
+    db = client.music_gen
+
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        profile_id = data['profileID']
+        profile_email = data['profileEmail'].lower()
+    except:
+        abort(404)
+
+    profile_id = authentication.verify(profile_id)
+    
+    if(not(profile_id)):
+        abort(404)
+    found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
+
+    if(not(found_user)):
+        songs = []
+    else:
+        songs = found_user['songs']
+
+    try:
+        song_id = data['songID']
+        new_name = str(data['newName'])
+    except:
+        abort(400)
+
+    for i in range(len(songs)):
+        if(song_id == songs[i]['song_id']):
+            songs[i]['song_name'] = new_name
+            break
+
+    db.users.update({'$and': [{'profileID': profile_id}, {'profileEmail': profile_email}]},
+                        {'$set': {'songs': songs}}, upsert=True)
+    
+    return jsonify({'status': 'song name updated'})
+
+@main.route('/remove_song', methods=['POST'])
+def remove_song():
+    db = client.music_gen
+
+
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        profile_id = data['profileID']
+        profile_email = data['profileEmail'].lower()
+    except:
+        abort(404)
+
+    profile_id = authentication.verify(profile_id)
+    
+    if(not(profile_id)):
+        abort(404)
+
+    found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
+
+    if(not(found_user)):
+        songs = []
+    else:
+        songs = found_user['songs']
+
+    try:
+        song_id = data['songID']
+        new_name = str(data['newName'])
+    except:
+        abort(400)
+
+    for i in range(len(songs)):
+        if(song_id == songs[i]['song_id']):
+            del(songs[i])
+            break
+
+    db.users.update({'$and': [{'profileID': profile_id}, {'profileEmail': profile_email}]},
+                        {'$set': {'songs': songs}}, upsert=True)
+
+    return jsonify({'status': 'song removed'})
 
 @main.route('/generate_song/help', methods=['GET', 'POST'])
 def generate_song_help():

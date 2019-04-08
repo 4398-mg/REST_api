@@ -164,8 +164,10 @@ def main(args=None):
     # generate 10 tracks using random seeds
     utils.log('Loading seed files...', args.verbose)
     X, y = next(seed_generator)
+    utils.log('Done loding seed files...', args.verbose)
     generated = utils.generate(model, X, window_size, args.file_length,
                                args.num_files, args.midi_instrument)
+    utils.log('File generated...', args.verbose)
     for i, midi in enumerate(generated):
         file = os.path.join(args.save_dir, '{}.mid'.format(i + 1))
         midi.write(file.format(i + 1))
