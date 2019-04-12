@@ -157,18 +157,27 @@ def generate_song():
         key.set_canned_acl('public-read')
         file_url = key.generate_url(0, query_auth=False, force_http=True)
         
+        new_file = './app/main/g_midis/{0}.mid'.format(file_id)
+
         # remove file
+        cp_string = 'cp {0} {1}'.format(generated_file, new_file)
         rm_string = 'rm {0}; rm {1}; rm {2}'.format(file_prefix + '.mp3', file_prefix + '.wav', generated_file)
+        
+        Popen(cp_string, stdout=PIPE, stderr=PIPE, shell=True).wait()
         Popen(rm_string, stdout=PIPE, stderr=PIPE, shell=True).wait()
+        
+        print('MIDI PATH: ' + new_file)
 
         response_obj = {
             'timestamp': datetime.utcnow(),
             'location': file_url,
+            'sheet_location': None,
             'song_id': file_id,
             'genre': data['genre'],
             'tempo': data['tempo'],
             'duration': data['duration'],
-            'song_name': names.generate_name(data['genre'], data['tempo'])
+            'song_name': names.generate_name(data['genre'], data['tempo']),
+            'midi_path': new_file
         }
 
         resp = jsonify(response_obj)
@@ -198,9 +207,11 @@ def generate_song():
             'timestamp': datetime.utcnow(),
             'location': None,
             'song_id': file_id,
+            'sheet_location': None,
             'genre': data['genre'],
             'tempo': data['tempo'],
             'duration': data['duration'],
+            'midi_path': new_file,
             'song_name': names.generate_name(data['genre'], data['tempo'])
         }
 
@@ -208,6 +219,49 @@ def generate_song():
         resp.status_code = 200
 
     return resp
+
+@main.route('/sheet_music', methods=['POST'])
+def sheet_music():
+    db = client.music_gen
+
+    try:
+        data = json.loads(request.data.decode('utf-8'))
+        song_id = data['songID']
+
+    except Exception as e:
+        print(e)
+        abort(400)
+
+    
+    song_obj = db.songs.find_one({'song_id': song_id})
+    
+    if('sheet_location' in song_obj.keys() and song_obj['sheet_location']):
+        print('sheet music cached')
+        return jsonify({'sheet_location': song_obj['sheet_location']})
+
+    gen_str = 'mkdir ./app/main/sheets/{0}; mono sheet.exe {1} ./app/main/sheets/{0}/{0}'.format(song_obj['song_id'],
+            song_obj['midi_path'])
+    Popen(gen_str, stdout=PIPE, stderr=PIPE, shell=True).wait()
+
+    zip_str = 'mv ./app/main/sheets/{0} ./; zip -r ./app/main/sheets/{0} ./{0}'.format(song_obj['song_id'])
+    Popen(zip_str, stdout=PIPE, stderr=PIPE, shell=True).wait()
+
+    sheet_path = './app/main/sheets/{0}.zip'.format(song_id)
+
+    key = bucket.new_key('sheet_music/' + song_id + '.zip')
+    key.set_contents_from_filename(sheet_path)
+    key.set_canned_acl('public-read')
+    file_url = key.generate_url(0, query_auth=False, force_http=True)
+
+    db.songs.update({'song_id': song_id}, {'$set': {'sheet_location': file_url}})
+
+    rm_str = 'rm -rf ./app/main/g_midis/{0}.mid ./app/main/sheets/{0}.zip ./{0}'.format(song_obj['song_id'])
+    Popen(rm_str, stdout=PIPE, stderr=PIPE, shell=True)
+
+   
+    print(song_obj)
+    
+    return jsonify({'sheet_location': file_url})
 
 @main.route('/history', methods=['POST'])
 def history():
