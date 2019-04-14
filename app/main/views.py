@@ -106,9 +106,9 @@ def generate_song():
     print(data['duration'])
 
     duration_dict = {
-        'short': 450,
-        'medium': 840,
-        'long': 1200
+        'short': 90,
+        'medium': 180,
+        'long': 300
     }
     
     try:
@@ -126,6 +126,13 @@ def generate_song():
                 'classical': 13,
                 'folk': 24
             }
+
+    tempo_dict = {
+            'slow': 2,
+            'medium': 3,
+            'fast': 7
+        }
+
     gen_params = {
         'data_dir': './app/main/neural_net/data/' + data['genre'],
         'experiment_dir': './app/main/neural_net/experiments/' + data['genre'],
@@ -133,7 +140,8 @@ def generate_song():
         'midi_instrument': instrument_dict[data['genre']],
         'num_files': 1,
         'prime_file': None,
-        'save_dir': None
+        'save_dir': None,
+        'tempo': tempo_dict[data['tempo']] 
     }
 
     begin = time.time()

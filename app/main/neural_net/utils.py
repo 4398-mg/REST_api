@@ -136,7 +136,7 @@ def load_model_from_checkpoint(model_dir):
 
     return model, epoch
 
-def generate(model, seeds, window_size, length, num_to_gen, instrument_name):
+def generate(model, seeds, window_size, length, num_to_gen, instrument_name, tempo):
     
     # generate a pretty midi file from a model using a seed
     def _gen(model, seed, window_size, length):
@@ -166,12 +166,12 @@ def generate(model, seeds, window_size, length, num_to_gen, instrument_name):
     for i in range(0, num_to_gen):
         seed = seeds[random.randint(0, len(seeds) - 1)]
         gen = _gen(model, seed, window_size, length)
-        midis.append(_network_output_to_midi(gen, instrument_name))
+        midis.append(_network_output_to_midi(gen, tempo, instrument_name))
     return midis
 
 # create a pretty midi file with a single instrument using the one-hot encoding
 # output of keras model.predict.
-def _network_output_to_midi(windows, 
+def _network_output_to_midi(windows, tempo,
                            instrument_name='Acoustic Grand Piano', 
                            allow_represses=False):
 
@@ -206,8 +206,9 @@ def _network_output_to_midi(windows,
             cur_note = note_num
             cur_note_start = clock
 
+        
         # update the clock
-        clock = clock + 1.0 / 4
+        clock = clock + 1.0 / (tempo + 1)
 
     # Add the cello instrument to the PrettyMIDI object
     midi.instruments.append(instrument)

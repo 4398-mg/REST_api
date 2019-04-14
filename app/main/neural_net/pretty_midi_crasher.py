@@ -6,7 +6,7 @@ songs_directory = "" #@Ishan: If you find it easier, you can set the variable he
 if "--location" in sys.argv: # command line option to choose folder to filter
 	songs_directory = sys.argv[sys.argv.index("--location") + 1]
 else:
-	print "Set --location option to choose folder to clean."
+	print ("Set --location option to choose folder to clean.")
 	exit() #@Ishan if you do that, you need to remove this exit()
 if songs_directory[-1] != "/":
 	songs_directory += "/"
@@ -16,7 +16,7 @@ bad_files_directory = "" #@Ishan: If you find it easier, you can set the variabl
 if "--dump" in sys.argv: # command line option to choose place to leave bad MIDIs
 	bad_files_directory = sys.argv[sys.argv.index("--dump") + 1]
 else:
-	print "Set --dump option to choose where to move files"
+	print ("Set --dump option to choose where to move files")
 	exit() #@Ishan if you do that, you need to remove this exit()
 if bad_files_directory[-1] != "/":
 	bad_files_directory += "/"
@@ -45,16 +45,16 @@ for song in os.listdir(songs_directory):
 		midi_data = pretty_midi.PrettyMIDI(songs_directory + song)
 	except RuntimeWarning as e:
 		bad_files_log = open(log_file_name, "a")
-		print "Found bad MIDI " + song
+		print ("Found bad MIDI " + song)
 		bad_files_log.write(song + "\n")
 		# Close immediatedly so that interrupts don't wipe out the log.
 		bad_files_log.close()
 		shutil.move(songs_directory + song, bad_files_directory + song)
 	# else:
-		# print "Succeeded in importing " + song
+		# print ("Succeeded in importing " + song)
 	except Exception:
 		bad_files_log = open(log_file_name, "a")
-		print "Likely bad MIDI " + song
+		print ("Likely bad MIDI " + song)
 		bad_files_log.write(song + "\n")
 		# Close immediatedly so that interrupts don't wipe out the log.
 		bad_files_log.close()
@@ -62,6 +62,6 @@ for song in os.listdir(songs_directory):
 	finally:
 		index += 1
 		if index % 50 == 0:
-			print "chug ... chug"
+			print ("chug ... chug")
 	
-bad_files_log.close()
+#bad_files_log.close()
