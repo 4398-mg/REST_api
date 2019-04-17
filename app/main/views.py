@@ -44,7 +44,9 @@ def test_db():
     db = client.music_gen
 
     if(not(app.config['DEBUG'])):
-        abort(404)
+        resp = jsonify({'error': 'the API is not in debug mode, hence it will not test the database'})
+        resp.status_code = 404
+        return resp
 
     resp = {}
     try:
@@ -75,10 +77,9 @@ def echo():
         print(e)
     try:
         data = json.loads(request.data.decode('utf-8'))
-        data['genre'] = data['genre'].lower()
-        data['tempo'] = data['tempo'].lower()
     except:
         data = {}
+    
     return jsonify(data)
 
 
@@ -101,10 +102,10 @@ def generate_song():
         data['genre'] = data['genre'].lower()
         data['tempo'] = data['tempo'].lower()
     except:
-        abort(400)
+        resp = jsonify({'error': 'unable to parse the sent data OR you are not passing values for the keys "genre" and "tempo"'})
+        resp.status_code = 400
+        return resp
     
-    print(data['duration'])
-
     duration_dict = {
         'short': 90,
         'medium': 180,
@@ -114,12 +115,16 @@ def generate_song():
     try:
         duration = duration_dict[data['duration'].lower()] + (randint(0,20)-10)
     except KeyError:
-        abort(400)
+        resp = jsonify({'error': 'you are not passing values for the key "duration"'})
+        resp.status_code = 400
+        return resp
     
     valid_genres = ['game', 'jazz', 'classical', 'folk']
     
     if(not(data['genre'] in valid_genres)):
-        abort(400)
+        resp = jsonify({'error': 'Invalid genre passed, valid genres are "game", "jazz", "classical", and "folk"'})
+        resp.status_code = 400
+        return resp
 
     instrument_dict = {
                 'game': 4,
@@ -238,8 +243,9 @@ def sheet_music():
         song_id = data['songID']
 
     except Exception as e:
-        print(e)
-        abort(400)
+        resp = jsonify({'error': 'unable to parse data sent OR the key "songID" was not included in the request'})
+        resp.status_code = 400
+        return resp
 
     
     song_obj = db.songs.find_one({'song_id': song_id})
@@ -281,12 +287,17 @@ def history():
         profile_id = data['profileID']
         profile_email= data['profileEmail'].lower()
     except:
-        abort(404)
+        resp = jsonify({'error': 'unable to parse the request body OR the keys "profileID" and "profileEmail" weren\'t passed in the request body'})
+        resp.status_code = 400
+        return resp
 
     profile_id = authentication.verify(profile_id)
     
     if(not(profile_id)):
-        abort(404)
+        resp = jsonify({'error': 'invalid profileID token and profileEmail pair. Perhaps you\'re not passing the profileID token and just the profileID?'})
+        resp.status_code = 404
+        return resp
+
     found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
 
     if(not(found_user)):
@@ -302,14 +313,21 @@ def edit_song():
     try:
         data = json.loads(request.data.decode('utf-8'))
         profile_id = data['profileID']
-        profile_email = data['profileEmail'].lower()
+        profile_email= data['profileEmail'].lower()
     except:
-        abort(404)
+        resp = jsonify({'error': 'unable to parse the request body OR the keys "profileID" and "profileEmail" weren\'t passed in the request body'})
+        resp.status_code = 400
+        return resp
 
     profile_id = authentication.verify(profile_id)
     
     if(not(profile_id)):
-        abort(404)
+        resp = jsonify({'error': 'invalid profileID token and profileEmail pair. Perhaps you\'re not passing the profileID token and just the profileID?'})
+        resp.status_code = 404
+        return resp
+
+
+
     found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
 
     if(not(found_user)):
@@ -321,7 +339,9 @@ def edit_song():
         song_id = data['songID']
         new_name = str(data['newName'])
     except:
-        abort(400)
+        resp = jsonify({'error': 'the key songID OR newName was not passed in the request body'})
+        resp.status_code = 400
+        return resp
 
     for i in range(len(songs)):
         if(song_id == songs[i]['song_id']):
@@ -337,19 +357,22 @@ def edit_song():
 def remove_song():
     db = client.music_gen
 
-
     try:
         data = json.loads(request.data.decode('utf-8'))
         profile_id = data['profileID']
-        profile_email = data['profileEmail'].lower()
+        profile_email= data['profileEmail'].lower()
     except:
-        abort(404)
+        resp = jsonify({'error': 'unable to parse the request body OR the keys "profileID" and "profileEmail" weren\'t passed in the request body'})
+        resp.status_code = 400
+        return resp
 
     profile_id = authentication.verify(profile_id)
     
     if(not(profile_id)):
-        abort(404)
-
+        resp = jsonify({'error': 'invalid profileID token and profileEmail pair. Perhaps you\'re not passing the profileID token and just the profileID?'})
+        resp.status_code = 404
+        return resp
+    
     found_user = db.users.find_one({'$and': [{'profileEmail': profile_email}, {'profileID': profile_id}]})
 
     if(not(found_user)):
@@ -360,7 +383,9 @@ def remove_song():
     try:
         song_id = data['songID']
     except:
-        abort(400)
+        resp = jsonify({'error': 'the key "songID" was not passed in the request body'})
+        resp.status_code = 400
+        return resp
 
     for i in range(len(songs)):
         if(song_id == songs[i]['song_id']):
@@ -371,46 +396,3 @@ def remove_song():
                         {'$set': {'songs': songs}}, upsert=True)
 
     return jsonify({'status': 'song removed'})
-
-@main.route('/generate_song/help', methods=['GET', 'POST'])
-def generate_song_help():
-    response_obj = {
-        'response': 'all things help related for song generation (wip)'
-    }
-
-    resp = jsonify(response_obj)
-    resp.status_code = 200
-
-    return resp
-
-
-@main.route('/get_song', methods=['POST'])
-def get_song():
-
-    try:
-        data = json.loads(request.data.decode('utf-8'))
-        song_id = data['song_id']
-    except:
-        abort(400)
-
-    db = client.music_gen
-
-    response_obj = db.songs.find_one({'song_id': song_id}, {'_id': False})
-
-    resp = jsonify(response_obj)
-    resp.status_code = 200
-
-    return resp
-
-
-@main.route('/get_song/help', methods=['GET', 'POST'])
-def get_song_help():
-
-    response_obj = {
-        'response': 'help for getting a song download link'
-    }
-
-    resp = jsonify(response_obj)
-    resp.status_code = 200
-
-    return resp
