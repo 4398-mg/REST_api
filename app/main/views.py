@@ -116,7 +116,7 @@ def generate_song():
     except KeyError:
         abort(400)
     
-    valid_genres = ['game', 'classical', 'folk']
+    valid_genres = ['game', 'jazz', 'classical', 'folk']
     
     if(not(data['genre'] in valid_genres)):
         abort(400)
@@ -124,7 +124,8 @@ def generate_song():
     instrument_dict = {
                 'game': 4,
                 'classical': 13,
-                'folk': 24
+                'folk': 24,
+                'jazz': 64
             }
 
     tempo_dict = {

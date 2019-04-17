@@ -7,7 +7,8 @@ def generate_name(genre, tempo):
         'folk': ['hills', 'meadows', 'paradise', 'fields', 'valley', 'basin'],
         'jazz': ['ska', 'boo bop', 'bing bang', 'ska da doo da da', 'zimbibby doo wa'],
         'rock': ['trouble', 'yesterday', 'human', 'dancer', 'prize fighter', 'love'],
-        'game': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo']
+        'game': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo'],
+        'blues': ['trouble', 'tear', 'fall', 'drift']
     }
 
     tempo_adjectives = {
