@@ -8,12 +8,13 @@ def generate_name(genre, tempo):
         'jazz': ['ska', 'boo bop', 'bing bang', 'ska da doo da da', 'zimbibby doo wa'],
         'rock': ['trouble', 'yesterday', 'human', 'dancer', 'prize fighter', 'love'],
         'game': ['nights', 'days', 'forever', 'life', 'youth', 'midnight', 'halo'],
-        'blues': ['trouble', 'tear', 'fall', 'drift']
+        'pop': ['trouble', 'tear', 'fall', 'drift']
     }
 
     tempo_adjectives = {
         'fast': ['Boltin\'', 'Zoomin\'', 'Rushing', 'Quick', 'Fast', 'Snapping'
                  'Crackin\'', 'Zippy', 'Quick little', 'Chasing'],
+        'normal': ['Just a normal', 'Another day in the', 'Red', 'Living', 'Big'],
         'medium': ['Just a normal', 'Another day in the', 'Red', 'Living', 'Big'],
         'slow': ['Dragging', 'Waltzing', 'Scraping', 'Holding back',
                  'Waiting for', 'Wandering']

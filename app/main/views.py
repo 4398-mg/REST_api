@@ -10,6 +10,7 @@ from .helper import names, authentication
 from .neural_net import sample
 import uuid
 import time
+import random
 from subprocess import Popen, PIPE
 from random import randint
 from google.oauth2 import id_token
@@ -127,27 +128,50 @@ def generate_song():
         return resp
 
     instrument_dict = {
-                'game': 4,
-                'classical': 13,
-                'folk': 24,
-                'jazz': 64
+                'game': [76, 72, 75],
+                'classical': [48, 42, 46],
+                'folk': [24, 25, 27],
+                'jazz': [26, 34, 36]
             }
 
     tempo_dict = {
-            'slow': 2,
-            'medium': 3,
-            'fast': 7
+            'slow': random.randint(0,2),
+            'medium': random.randint(3, 5),
+            'normal': random.randint(3,5),
+            'fast': random.randint(6,8)
         }
+
+    genre_dict = {
+            'game': 'game',
+            'classical': 'classical',
+            'folk': 'folk',
+            'jazz': 'jazz'
+        }
+
+    pitch = 0
+    if(data['genre'] == 'jazz'):
+        pitch = -30
+
+    pitch_dict = {
+            'game':(-10, 14),
+            'classical':(-10,20),
+            'folk':(-10, 20),
+            'jazz':(-30, -15)
+        }
+
+    drums = False
 
     gen_params = {
         'data_dir': './app/main/neural_net/data/' + data['genre'],
-        'experiment_dir': './app/main/neural_net/experiments/' + data['genre'],
+        'experiment_dir': './app/main/neural_net/experiments/' + genre_dict[data['genre']],
         'file_length': duration, 
-        'midi_instrument': instrument_dict[data['genre']],
+        'midi_instrument': random.choice(instrument_dict[data['genre']]),
         'num_files': 1,
         'prime_file': None,
         'save_dir': None,
-        'tempo': tempo_dict[data['tempo']] 
+        'tempo': tempo_dict[data['tempo']],
+        'pitch': random.randint(pitch_dict[data['genre']][0],pitch_dict[data['genre']][1]),
+        'drum': drums
     }
 
     begin = time.time()
